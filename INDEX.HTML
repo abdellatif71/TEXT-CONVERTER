@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hand History to XML Converter</title>
+  <style>
+    /* Allgemeine Stile */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f8ff;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: #e6dada;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 500px;
+      width: 90%;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: #444;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      font-size: 16px;
+      resize: none;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: border 0.3s ease;
+    }
+
+    textarea:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .buttons button,
+    #copyButton {
+      flex: 1;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .buttons button:hover,
+    #copyButton:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    .buttons button:active,
+    #copyButton:active {
+      transform: translateY(0);
+    }
+
+    #xmlOutput {
+      margin-top: 15px;
+      height: 150px; /* Begrenzte Höhe */
+      overflow-y: auto; /* Scrollbar hinzufügen */
+      white-space: pre-wrap;
+      background-color: #f9f9f9;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #777;
+    }
+
+    footer span {
+      font-weight: bold;
+      color: #333;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .buttons button {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+    }
+    #xmlOutputA {
+    margin-top: 15px;
+    width:30; /* Volle Breite */
+    height:auto; /* Automatische Höhe */
+    white-space: pre-wrap; /* Zeilenumbrüche beibehalten */
+    background-color: #f6f60e; /* Unterschiedliche Hintergrundfarbe */
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #333;
+    overflow: visible; /* Scrollbar entfernen */
+    box-sizing: border-box; /* Padding und Border berücksichtigen */
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Poker-Hand-History to XML Converter</h1>
+    <textarea id="handHistory" placeholder="Enter Hand History"></textarea>
+    <div class="buttons">
+      <button id="clearButton">Löschen</button>
+      <button id="convertButton">Konvertieren</button>
+    </div>
+    <div id="xmlOutput"></div>
+    <div id="xmlOutputA"></div>
+    <button id="copyButton">Kopieren</button>
+  </div>
+  <footer>
+    Erstellt von <span>Abouelabbes Abdellatif</span>, <span>Software Engineer</span>
+  </footer>
+
+  <script>
+    // Clear input
+    document.getElementById('clearButton').addEventListener('click', function () {
+      document.getElementById('handHistory').value = '';
+      document.getElementById('xmlOutput').textContent = '';
+    });
+
+    // Convert to XML
+    document.getElementById('convertButton').addEventListener('click', function () {
+    const handHistory = document.getElementById('handHistory').value;
+    const xmlOutput = document.getElementById('xmlOutput');
+    const xmlOutputA = document.getElementById('xmlOutputA');
+
+    if (xmlOutput) {
+        xmlOutput.textContent = handHistory; // Nur xmlOutput aktualisieren
+    }
+
+    // Optional: xmlOutputA bleibt unverändert oder kann bei Bedarf separat behandelt werden
+});
+
+
+  
+
+    // Copy output
+    document.getElementById('copyButton').addEventListener('click', function () {
+      const xmlOutput = document.getElementById('xmlOutput');
+      if (xmlOutput.textContent) {
+        navigator.clipboard.writeText(xmlOutput.textContent)
+          .then(() => alert('XML wurde kopiert!'))
+          .catch(() => alert('Fehler beim Kopieren.'));
+      }
+    });
+
+    document.getElementById('convertButton').addEventListener('click', function() {
+        const handHistory = document.getElementById('handHistory').value;
+        const xmlOutput = document.getElementById('xmlOutput');
+    
+        // Parse the hand history and convert to XML
+        const xml = convertToXml(handHistory);
+    
+        // Display the XML output
+        xmlOutput.textContent = xml;
+    });
+    
+    function convertToXml(handHistory) {
+    // Extract relevant information from the hand history
+    const lines = handHistory.split('\n');
+    const handIdMatch = lines[0]?.match(/Hand #(\d+-\d+)/);
+    const dateMatch = lines[0]?.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
+    const gameTypeMatch = lines[1]?.match(/Game: (.+)/);
+    const blindsMatch = lines[1]?.match(/Blinds (\d+)\/(\d+)/);
+    const siteMatch = lines[2]?.match(/Site: (.+)/);
+    const tableMatch = lines[3]?.match(/Table: (.+)/);
+    const players = [];
+
+    // Match for the winner and the pot amount
+    const winnerMatch = lines.find(line => line.includes('wins Pot'));
+    
+    if (!handIdMatch || !dateMatch || !gameTypeMatch || !blindsMatch || !siteMatch || !tableMatch) {
+        return 'Error: Invalid hand history format.';
+    }
+
+    const handId = handIdMatch[1];
+    const date = dateMatch[1];
+    const gameType = gameTypeMatch[1];
+    const blinds = blindsMatch;
+    const site = siteMatch[1];
+    const table = tableMatch[1];
+
+    let winner = '';
+    let pot = 0;
+    let handDescription = '';
+
+    if (winnerMatch) {
+        
+        const winnerDetails = winnerMatch.match(/(\S+) wins Pot \((\d+)\)(?: with (.+))?/);
+
+        if (winnerDetails) {
+            winner = winnerDetails[1];
+            pot = parseInt(winnerDetails[2], 10);
+            handDescription = winnerDetails[3];
+            console.log(winner);
+        }
+    }
+    
+        let playerIndex = 4;
+        while (lines[playerIndex] && lines[playerIndex].startsWith('Seat')) {
+            const playerMatch = lines[playerIndex].match(/Seat (\d+): (.+) \((\d+)\)/);
+            if (playerMatch) {
+                players.push({
+                    seat: playerMatch[1],
+                    name: playerMatch[2],
+                    chips: playerMatch[3]
+                });
+            }
+            playerIndex++;
+        }
+    
+        const dealerMatch = lines[playerIndex]?.match(/^(.+?) has the dealer button$/);
+if (!dealerMatch) {
+    console.error("Error: Dealer information not found in line:", lines[playerIndex]);
+    return 'Error: Dealer information not found.';
+}
+
+const dealer = dealerMatch[1].trim(); // Extrahierter Dealer-Name
+playerIndex++;
+
+const playersWithDealer = players.map(player => ({
+    ...player,
+    dealer: player.name.trim() === dealer.trim() ? '1' : '0' // Vergleiche mit Trim
+}));
+
+
+    
+        const smallBlindMatch = lines[playerIndex]?.match(/(.+) posts small blind (\d+)/);
+        const bigBlindMatch = lines[playerIndex + 1]?.match(/(.+) posts big blind (\d+)/);
+        if (!smallBlindMatch || !bigBlindMatch) {
+            return 'Error: Blind information not found.';
+        }
+        const smallBlind = smallBlindMatch;
+        const bigBlind = bigBlindMatch;
+        playerIndex += 2;
+    
+        const holeCardsMatch = lines[playerIndex]?.match(/\*\* Hole Cards \*\* \[(\d+) players\]/);
+        if (!holeCardsMatch) {
+            return 'Error: Hole cards information not found.';
+        }
+        const holeCards = holeCardsMatch[1];
+        playerIndex++;
+
+        //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+          // Funktion zur Bestimmung des Aktionstyps hinzufügen
+    function getActionType(action) {
+        switch (action) {
+            case 'folds': return '0';
+            case 'calls': return '3';
+            case 'raises': return '4';
+            case 'bets': return '5';
+            case 'checks': return '6';
+            default: return '0';
+        }
+      }
+        const actions = [];
+while (lines[playerIndex] && !lines[playerIndex].startsWith('** Flop **')) {
+    const actionMatch = lines[playerIndex].match(/(.+) (folds|calls|raises|bets|checks) ?(\d+)?/);
+    if (actionMatch) {
+        actions.push({
+            player: actionMatch[1],
+            action: actionMatch[2],
+            amount: actionMatch[3] || 0 // Falls keine Summe vorhanden ist, setze sie auf 0
+        });
+    }
+    playerIndex++;
+}
+
+
+/// Funktion zum Formatieren der Karten (Großbuchstaben und Umkehren der Buchstaben)
+const formatCard = (card) => {
+    const cardUpper = card.toUpperCase(); // Großbuchstaben
+
+    // Konvertiere T in 10 für Karten mit einer 10
+    if (cardUpper.charAt(0) === 'T') {
+        return 'D10'; // Hier kannst du für alle Karten die von PokerHandReplayer erwartet werden (D10 für 10 der Karo)
+    }
+
+    return cardUpper.charAt(1) + cardUpper.charAt(0); // Buchstaben umkehren
+};
+
+// Flop Parsing
+const flopMatch = lines[playerIndex]?.match(/\*\* Flop \*\* \[(.+)\]/);
+const flop = flopMatch ? flopMatch[1].split(' ').map(formatCard).join(' ') : 'N/A'; // Nur Rank, keine Farbe
+
+playerIndex++;
+
+// Turn und River Match-Variablen
+let turnMatch = null;
+let riverMatch = null;
+
+// Finde Turn- und River-Informationen
+while (playerIndex < lines.length) {
+    console.log('Parsing line:', lines[playerIndex]);
+    
+    if (!turnMatch) {
+        turnMatch = lines[playerIndex]?.match(/\*\* Turn \*\* \[(.+)\]/);
+        if (turnMatch) {
+            playerIndex++;
+            continue;
+        }
+    }
+
+    if (!riverMatch) {
+        riverMatch = lines[playerIndex]?.match(/\*\* River \*\* \[(.+)\]/);
+        if (riverMatch) {
+            playerIndex++;
+            continue;
+        }
+    }
+
+    playerIndex++;
+}
+
+// Falls keine Turn- oder River-Karten gefunden werden, lege sie auf leere Strings
+const turn = turnMatch ? turnMatch[1].split(' ').map(formatCard).join(' ') : 'N/A';
+const river = riverMatch ? riverMatch[1].split(' ').map(formatCard).join(' ') : 'N/A';
+
+
+// Generiere die Ausgabe für jede Runde (Flop, Turn, River)
+let roundNumber = 0;
+
+const rounds = [
+    { no: ++roundNumber, type: 'Flop', cards: flop },
+    { no: ++roundNumber, type: 'Turn', cards: turn },
+    { no: ++roundNumber, type: 'River', cards: river }
+];
+
+// Ausgabe als XML
+const xmlOutput = rounds.map(round => {
+    return `<round no="${round.no}">
+                <cards player="" type="${round.type}">${round.cards}</cards>
+            </round>`;
+}).join('\n');
+
+// Zeige das XML an
+console.log(xmlOutput);
+
+// Hole Cards Parsing hinzufügen
+const holeCardsStartIndex = lines.findIndex(line => line.startsWith('** Hole Cards **'));
+if (holeCardsStartIndex === -1) {
+    return 'Error: Hole cards information not found.';
+}
+
+playerIndex = holeCardsStartIndex + 1; // Nach der Hole-Cards-Linie beginnen
+players.forEach(player => {
+    // Suche nach Karteninformationen für jeden Spieler
+    const holeCardsMatch = lines[playerIndex]?.match(new RegExp(`${player.name}: \\[(.+)\\]`));
+    if (holeCardsMatch) {
+        player.cards = holeCardsMatch[1]; // Karten des Spielers speichern
+    } else {
+        player.cards = 'N/A'; // Standardwert, falls keine Karten gefunden werden
+    }
+    playerIndex++;
+});
+
+// Spieler- und Karteninformationen in Aktionen einfügen
+//const actions = [];
+while (lines[playerIndex] && !lines[playerIndex].startsWith('** Flop **')) {
+    const actionMatch = lines[playerIndex].match(/(.+) (folds|calls|raises|bets|checks) ?(\d+)?/);
+    if (actionMatch) {
+        const playerName = actionMatch[1];
+        const player = players.find(p => p.name === playerName);
+        actions.push({
+            player: playerName,
+            action: actionMatch[2],
+            amount: actionMatch[3] || 0, // Falls keine Summe vorhanden ist, setze sie auf 0
+            cards: player ? player.cards : 'N/A' // Karten des Spielers hinzufügen
+        });
+    }
+    playerIndex++;
+}
+function parseSummary(lines) {
+    // Sucht nach der Zeile, die mit '** Summary **' beginnt und gibt deren Index zurück.
+    const summaryIndex = lines.findIndex(line => line.startsWith('** Summary **'));
+
+    // Wenn '** Summary **' nicht gefunden wird, gibt die Funktion 'null' zurück.
+    if (summaryIndex === -1) {
+        return null;
+    }
+
+    // Extrahiert die Zeilen, die nach der Zeile mit '** Summary **' kommen.
+    const summaryLines = lines.slice(summaryIndex + 1);
+
+    const boardMatch = summaryLines.find(line => line.includes('Board:')).match(/Board: \[(.+)\]/);
+    const rabbitMatch = summaryLines.find(line => line.includes('Rabbit:')).match(/Rabbit: \[(.+)\]/);
+    const playersMatch = summaryLines.find(line => line.includes('Players:')).match(/Players: (\d+)/);
+    const potsMatch = summaryLines.find(line => line.includes('Pots:')).match(/Pots: (\d+)/);
+    const totalMatch = summaryLines.find(line => line.includes('Total:')).match(/Total: (\d+)/);
+    const rakeMatch = summaryLines.find(line => line.includes('Rake:')).match(/Rake: (\d+)/);
+
+    // Sitzpattern für Spieler und Aktionen.
+    const seatPattern = /^Seat (\d+): (\S+) \(([-+]?\d+)\) \[([^\]]+)\] (Folded on (PreFlop)|Showdown with .*)$/;
+
+    const seatLines = summaryLines.filter(line => seatPattern.test(line));
+
+    const seats = seatLines.map(line => {
+        const match = line.match(seatPattern);
+        return {
+            seat: match[1],         // Sitznummer
+            player: match[2],       // Spielername
+            netChange: match[3],    // Netto-Gewinn oder -Verlust
+            cards: match[4],        // Karten des Spielers
+            action: match[5]        // Aktion des Spielers (Folded oder Showdown)
+        };
+    });
+
+    // Gibt ein Objekt zurück, das die extrahierten Werte enthält.
+    return {
+        board: boardMatch ? boardMatch[1] : 'N/A',  // Wenn 'Board:' gefunden wird, gebe den Wert zurück, andernfalls 'N/A'.
+        rabbit: rabbitMatch ? rabbitMatch[1] : 'N/A',  // Wenn 'Rabbit:' gefunden wird, gebe den Wert zurück, andernfalls 'N/A'.
+        players: playersMatch ? playersMatch[1] : 'N/A',  // Wenn 'Players:' gefunden wird, gebe die Spieleranzahl zurück, andernfalls 'N/A'.
+        pots: potsMatch ? potsMatch[1] : 'N/A',  // Wenn 'Pots:' gefunden wird, gebe die Potsanzahl zurück, andernfalls 'N/A'.
+        total: totalMatch ? totalMatch[1] : 'N/A',  // Wenn 'Total:' gefunden wird, gebe den Gesamtbetrag zurück, andernfalls 'N/A'.
+        rake: rakeMatch ? rakeMatch[1] : 'N/A',  // Wenn 'Rake:' gefunden wird, gebe den Rake-Betrag zurück, andernfalls 'N/A'.
+        seats: seats // Hier werden die Sitzinformationen zurückgegeben
+    };
+}
+
+const summaryData = parseSummary(lines);
+const seats = summaryData.seats
+
+// Vorherigen Code, um die Aktionen zu generieren
+const actionsOutput = actions.map((action, index) => {
+    const playerName = action.player;
+    const actionType = getActionType(action.action); // Typ wie "Raise", "Call", etc.
+    const cards = action.cards ? action.cards : 'N/A'; // Falls keine Karten vorhanden sind, setze 'N/A'
+
+    // Finde den Spieler in der `seats`-Datenstruktur
+    const playerSeat = seats.find(seat => seat.player === playerName);
+    
+    // Hole die Karten des Spielers oder setze 'N/A' wenn keine gefunden wurden
+    const playerCards = playerSeat && playerSeat.cards ? playerSeat.cards : '00 00';
+
+    return `Action ${index + 1}:
+    Spieler: ${playerName}
+    Aktionstyp: ${actionType}
+    Karten: ${playerCards}
+    Betrag: €${action.amount}`;
+}).join('\n\n');
+
+// Funktion zum Erstellen der TXT-Ausgabe
+const txtOutput = `
+Session Code: ${handId}
+
+Allgemein:
+- Modus: real
+- Spieltyp: ${gameType}
+- Tischname: ${table}
+- Währung: EUR
+- Dauer: 00:00:00
+- Spieleanzahl: 1
+- Startdatum: ${date}
+- Spielername: ${players[0].name}
+
+Spieler:
+${playersWithDealer.map(player => {
+    const formattedChips = (player.chips / 100).toFixed(2).replace('.', ',');
+    const formattedWin = (player.name === winner ? (pot / 10).toFixed(2).replace('.', ',') : '0,00');
+
+    return `- Spielername: ${player.name}
+  Sitz: ${player.name}
+  Chips: €${formattedChips}
+  Gewinn: €${formattedWin}
+  Dealer: ${player.dealer ? 'Ja' : 'Nein'}`;
+}).join('\n\n')}
+
+Aktionen:
+${actionsOutput}
+
+Runden:
+Runde 0:
+- Spieler: ${smallBlind[1]}, Betrag: ${smallBlind[2]}, Typ: Small Blind
+- Spieler: ${bigBlind[1]}, Betrag: ${bigBlind[2]}, Typ: Big Blind
+
+Runde 1:
+${actionsOutput}
+
+Runde 2:
+- Flop Karten: ${flop}
+
+Runde 3:
+- Turn Karte: ${turn}
+
+Runde 4:
+- River Karte: ${river}
+`;
+
+console.log(txtOutput);
+return txtOutput;
+
+
+    }
+  </script>
+</body>
+</html>
