@@ -462,8 +462,8 @@ const seats = summaryData.seats
 // Vorherigen Code, um die Aktionen zu generieren
 const actionsOutput = actions.map((action, index) => {
     const playerName = action.player;
-    const actionType = getActionType(action.action); // Typ wie "Raise", "Call", etc.
-    const cards = action.cards ? action.cards : 'N/A'; // Falls keine Karten vorhanden sind, setze 'N/A'
+    const actionType = getActionType(action.action); 
+    const cards = action.cards ? action.cards : 'N/A'; 
 
     // Finde den Spieler in der `seats`-Datenstruktur
     const playerSeat = seats.find(seat => seat.player === playerName);
