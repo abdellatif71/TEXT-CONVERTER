@@ -1,5 +1,5 @@
 Hand History to XML Converter
-Beschreibung
+
 Dies ist ein Web-Tool, das speziell für Poker-Spieler oder -Analysten entwickelt wurde, um Hand-History-Daten aus einem Textformat in ein XML-Format zu konvertieren. Das Tool bietet eine benutzerfreundliche Oberfläche und die Möglichkeit, Hand-History-Daten einzugeben, zu verarbeiten und in einem gut strukturierten XML-Format darzustellen.
 
 Features
