@@ -465,10 +465,10 @@ const actionsOutput = actions.map((action, index) => {
     const actionType = getActionType(action.action); 
     const cards = action.cards ? action.cards : 'N/A'; 
 
-    // Finde den Spieler in der `seats`-Datenstruktur
+ 
     const playerSeat = seats.find(seat => seat.player === playerName);
     
-    // Hole die Karten des Spielers oder setze 'N/A' wenn keine gefunden wurden
+   
     const playerCards = playerSeat && playerSeat.cards ? playerSeat.cards : '00 00';
 
     return `Action ${index + 1}:
